@@ -14,34 +14,45 @@ export default function Chat() {
   const [contacts, setContacts] = useState([])
   const [currentChat, setCurrentChat] = useState(undefined)
   const [currentUser, setCurrentUser] = useState(undefined)
-  useEffect(async () => {
-    if (!localStorage.getItem(import.meta.env.VITE_LOCALHOST_KEY)) {
-      navigate('/login')
-    } else {
-      setCurrentUser(
-        await JSON.parse(
-          localStorage.getItem(import.meta.env.VITE_LOCALHOST_KEY)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!localStorage.getItem(import.meta.env.VITE_LOCALHOST_KEY)) {
+        navigate('/login')
+      } else {
+        setCurrentUser(
+          await JSON.parse(
+            localStorage.getItem(import.meta.env.VITE_LOCALHOST_KEY)
+          )
         )
-      )
+      }
     }
-  }, [])
+
+    fetchData()
+  }, [navigate])
+
   useEffect(() => {
     if (currentUser) {
-      socket.current = io(host)
+      socket.current = io("http://localhost:5000")
       socket.current.emit('add-user', currentUser._id)
     }
   }, [currentUser])
 
-  useEffect(async () => {
-    if (currentUser) {
-      if (currentUser.isAvatarImageSet) {
-        const data = await axios.get(`${allUsersRoute}/${currentUser._id}`)
-        setContacts(data.data)
-      } else {
-        navigate('/setAvatar')
+  useEffect(() => {
+    const fetchContacts = async () => {
+      if (currentUser) {
+        if (currentUser.isAvatarImageSet) {
+          const data = await axios.get(`${allUsersRoute}/${currentUser._id}`)
+          setContacts(data.data.users)
+        } else {
+          navigate('/setAvatar')
+        }
       }
     }
-  }, [currentUser])
+
+    fetchContacts()
+  }, [currentUser, navigate])
+
   const handleChatChange = (chat) => {
     setCurrentChat(chat)
   }

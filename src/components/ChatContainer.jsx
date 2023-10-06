@@ -11,15 +11,27 @@ export default function ChatContainer({ currentChat, socket }) {
   const scrollRef = useRef()
   const [arrivalMessage, setArrivalMessage] = useState(null)
 
-  useEffect(async () => {
-    const data = await JSON.parse(
-      localStorage.getItem(import.meta.env.VITE_LOCALHOST_KEY)
-    )
-    const response = await axios.post(recieveMessageRoute, {
-      from: data._id,
-      to: currentChat._id,
-    })
-    setMessages(response.data)
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await JSON.parse(
+          localStorage.getItem(import.meta.env.VITE_LOCALHOST_KEY)
+        )
+
+        if (currentChat) {
+          const response = await axios.post(recieveMessageRoute, {
+            from: data._id,
+            to: currentChat._id,
+          })
+
+          setMessages(response.data)
+        }
+      } catch (error) {
+        console.error('Error fetching and setting messages:', error)
+      }
+    }
+
+    fetchData()
   }, [currentChat])
 
   useEffect(() => {
